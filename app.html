@@ -1,0 +1,1582 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SQA Quiz</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f6fb;
+        color: #222;
+        min-height: 100vh;
+      }
+
+      #app {
+        max-width: 740px;
+        margin: 0 auto;
+        padding: 24px 16px;
+      }
+
+      h1 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: #3b2fa0;
+      }
+      .subtitle {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 20px;
+      }
+
+      .screen {
+        display: none;
+      }
+      .screen.active {
+        display: block;
+      }
+
+      /* Chapter grid */
+      .section-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 10px;
+      }
+      .chapter-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .chapter-card {
+        background: #fff;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 14px 16px;
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .chapter-card:hover {
+        border-color: #9b8fe8;
+        background: #f3f1ff;
+      }
+      .chapter-card.selected {
+        border-color: #6c5ce7;
+        background: #f0eeff;
+      }
+      .ch-num {
+        font-size: 11px;
+        color: #888;
+        font-weight: 700;
+        margin-bottom: 3px;
+      }
+      .ch-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #333;
+        line-height: 1.4;
+      }
+      .ch-count {
+        font-size: 12px;
+        color: #aaa;
+        margin-top: 4px;
+      }
+
+      /* Controls */
+      .controls-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+      label {
+        font-size: 13px;
+        color: #555;
+      }
+      select {
+        font-size: 13px;
+        padding: 7px 12px;
+        border: 1.5px solid #ddd;
+        border-radius: 8px;
+        background: #fff;
+        color: #333;
+        cursor: pointer;
+      }
+      select:focus {
+        outline: none;
+        border-color: #6c5ce7;
+      }
+
+      .btn-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      button {
+        cursor: pointer;
+        font-size: 14px;
+        border-radius: 8px;
+        padding: 9px 20px;
+        border: none;
+        transition: 0.15s;
+        font-family: inherit;
+      }
+      .btn-primary {
+        background: #6c5ce7;
+        color: #fff;
+        font-weight: 600;
+      }
+      .btn-primary:hover {
+        background: #5548c8;
+      }
+      .btn-primary:disabled {
+        background: #bbb;
+        cursor: not-allowed;
+      }
+      .btn-outline {
+        background: #fff;
+        color: #444;
+        border: 1.5px solid #ddd;
+      }
+      .btn-outline:hover {
+        background: #f5f5f5;
+        border-color: #bbb;
+      }
+
+      /* Quiz screen */
+      .quiz-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .q-meta {
+        font-size: 13px;
+        color: #666;
+      }
+      .q-chapter-tag {
+        font-size: 12px;
+        background: #f0eeff;
+        color: #6c5ce7;
+        border-radius: 99px;
+        padding: 3px 10px;
+        font-weight: 600;
+      }
+      .progress-wrap {
+        background: #e8e8e8;
+        border-radius: 99px;
+        height: 7px;
+        margin-bottom: 20px;
+      }
+      .progress-fill {
+        height: 7px;
+        border-radius: 99px;
+        background: #6c5ce7;
+        transition: width 0.3s;
+      }
+      .question-text {
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 1.6;
+        color: #222;
+        margin-bottom: 18px;
+        background: #fff;
+        border-radius: 10px;
+        padding: 18px 20px;
+        border: 1.5px solid #e8e8e8;
+      }
+
+      .options {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+      }
+      .option-btn {
+        background: #fff;
+        border: 1.5px solid #e0e0e0;
+        border-radius: 9px;
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #333;
+        text-align: left;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        line-height: 1.5;
+        transition: 0.15s;
+        width: 100%;
+      }
+      .option-btn:hover:not(:disabled) {
+        border-color: #9b8fe8;
+        background: #f5f3ff;
+      }
+      .option-btn.selected {
+        border-color: #6c5ce7;
+        background: #f0eeff;
+      }
+      .option-btn .letter {
+        font-weight: 700;
+        color: #888;
+        min-width: 20px;
+      }
+      .option-btn.correct {
+        border-color: #00b894;
+        background: #eafaf5;
+      }
+      .option-btn.correct .letter {
+        color: #00875a;
+      }
+      .option-btn.wrong {
+        border-color: #e17055;
+        background: #fff3f0;
+      }
+      .option-btn.wrong .letter {
+        color: #c0392b;
+      }
+      .option-btn:disabled {
+        cursor: default;
+      }
+
+      .feedback {
+        margin-top: 14px;
+        padding: 12px 16px;
+        border-radius: 9px;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .feedback.correct {
+        background: #eafaf5;
+        color: #007a55;
+        border: 1.5px solid #55d8b0;
+      }
+      .feedback.wrong {
+        background: #fff3f0;
+        color: #c0392b;
+        border: 1.5px solid #f0997b;
+      }
+
+      .quiz-nav {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 18px;
+        align-items: center;
+      }
+
+      /* Result screen */
+      .result-center {
+        text-align: center;
+        padding: 20px 0 10px;
+      }
+      .score-ring {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        border: 5px solid #6c5ce7;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        background: #f0eeff;
+      }
+      .score-big {
+        font-size: 30px;
+        font-weight: 700;
+        color: #6c5ce7;
+      }
+      .score-lbl {
+        font-size: 12px;
+        color: #888;
+      }
+      .result-msg {
+        font-size: 15px;
+        color: #555;
+        margin-bottom: 20px;
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .stat-card {
+        background: #fff;
+        border-radius: 10px;
+        padding: 14px;
+        text-align: center;
+        border: 1.5px solid #e8e8e8;
+      }
+      .stat-val {
+        font-size: 26px;
+        font-weight: 700;
+      }
+      .stat-lbl {
+        font-size: 12px;
+        color: #888;
+        margin-top: 2px;
+      }
+      .green {
+        color: #00b894;
+      }
+      .red {
+        color: #e17055;
+      }
+      .purple {
+        color: #6c5ce7;
+      }
+
+      /* Review */
+      .review-item {
+        background: #fff;
+        border: 1.5px solid #e8e8e8;
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 10px;
+      }
+      .review-q {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 10px;
+        line-height: 1.5;
+      }
+      .review-ans {
+        font-size: 13px;
+        padding: 5px 12px;
+        border-radius: 7px;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 4px;
+        line-height: 1.5;
+      }
+      .review-ans.correct {
+        background: #eafaf5;
+        color: #007a55;
+      }
+      .review-ans.wrong {
+        background: #fff3f0;
+        color: #c0392b;
+      }
+      .review-ans.neutral {
+        color: #777;
+      }
+      .review-tag {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        color: #6c5ce7;
+        background: #f0eeff;
+        border-radius: 99px;
+        padding: 2px 10px;
+        margin-bottom: 8px;
+      }
+      .question-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .question-card {
+        background: #fff;
+        border: 1.5px solid #e8e8e8;
+        border-radius: 10px;
+        padding: 14px;
+      }
+      .question-card .question-text {
+        margin-bottom: 10px;
+        background: transparent;
+        border: none;
+        padding: 0;
+        border-radius: 0;
+        font-size: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <!-- HOME -->
+      <div id="home-screen" class="screen active">
+        <h1>SQA Quiz</h1>
+        <p class="subtitle">
+          Chọn chương muốn ôn tập, số câu hỏi rồi bấm Bắt đầu.
+        </p>
+
+        <div class="section-label">Chọn chương</div>
+        <div class="chapter-grid" id="chapter-grid"></div>
+
+        <div class="controls-row">
+          <label>Số câu:</label>
+          <select id="q-count">
+            <option value="10">10 câu</option>
+            <option value="20" selected>20 câu</option>
+            <option value="40">40 câu</option>
+            <option value="80">Tất cả (80 câu)</option>
+          </select>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-primary" onclick="startQuiz()">Bắt đầu thi</button>
+          <button class="btn-outline" onclick="selectAll()">Chọn tất cả</button>
+          <button class="btn-outline" onclick="clearAll()">Bỏ chọn</button>
+        </div>
+      </div>
+
+      <!-- QUIZ -->
+      <div id="quiz-screen" class="screen">
+        <div class="quiz-header">
+          <span class="q-meta" id="q-meta"></span>
+          <span class="q-chapter-tag" id="q-chapter-tag"></span>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="question-list" id="questions-list"></div>
+        <div class="quiz-nav">
+          <button class="btn-outline" onclick="exitQuiz()">
+            &#8592; Thoát
+          </button>
+          <button class="btn-primary" id="submit-btn" onclick="submitQuiz()">
+            Nộp bài
+          </button>
+        </div>
+      </div>
+
+      <!-- RESULT -->
+      <div id="result-screen" class="screen">
+        <div class="result-center">
+          <div class="score-ring">
+            <span class="score-big" id="score-pct">0%</span>
+            <span class="score-lbl">Điểm</span>
+          </div>
+          <p class="result-msg" id="result-msg"></p>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-val green" id="s-correct">0</div>
+            <div class="stat-lbl">Đúng</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val red" id="s-wrong">0</div>
+            <div class="stat-lbl">Sai</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val purple" id="s-total">0</div>
+            <div class="stat-lbl">Tổng câu</div>
+          </div>
+        </div>
+        <div class="btn-row" style="margin-bottom: 24px">
+          <button class="btn-primary" onclick="restartSame()">Thi lại</button>
+          <button class="btn-outline" onclick="showHome()">
+            Chọn chương khác
+          </button>
+          <button class="btn-outline" onclick="toggleReview()">
+            Xem đáp án
+          </button>
+        </div>
+        <div id="review-area" style="display: none">
+          <div class="section-label" style="margin-bottom: 12px">
+            Xem lại câu hỏi
+          </div>
+          <div id="review-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const QUESTIONS = [
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: 'According to the document, what is "Systems Software"?',
+          opts: [
+            "Programs that solve specific user-oriented problems.",
+            "A set of programs that support the computer system by coordinating the activities of the hardware and the applications.",
+            "Software developed in-house.",
+            "Software purchased off-the-shelf.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: "Application software is defined as:",
+          opts: [
+            "Programs written for a specific CPU.",
+            "A set of programs that support the hardware.",
+            "A set of programs that solve specific user-oriented problems.",
+            "Operating systems and utility programs.",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: "Which of the following is considered a grammatical error in software?",
+          opts: [
+            "Logic error",
+            "Faulty requirements",
+            "Syntax error",
+            "User interface error",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: "Multiplying two operands instead of adding them is an example of a:",
+          opts: [
+            "Syntax error",
+            "Documentation error",
+            "Logic error",
+            "Communication failure",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: "Which of the following is NOT listed as one of the nine causes of software errors?",
+          opts: [
+            "Faulty requirements definition",
+            "Shortcomings of the testing process",
+            "Hardware fatigue over time",
+            "Deliberate deviations from software requirements",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: "When does a software fault become a software failure?",
+          opts: [
+            "When it is compiled.",
+            "When/if it is activated during execution.",
+            "When the code is reviewed.",
+            "When the user reports it.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: "Why might an existing software fault never cause a failure?",
+          opts: [
+            "Because faults and failures are mutually exclusive.",
+            "Because that part of the software may not be executed.",
+            "Because modern CPUs automatically fix faults.",
+            "Because the compiler removes all faults.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: "Software quality is defined as the degree to which a system meets:",
+          opts: [
+            "Financial budget limits.",
+            "Development schedules.",
+            "Specified requirements.",
+            "Hardware benchmarks.",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: "What is the main objective of Quality Assurance (QA)?",
+          opts: [
+            "To test the product right before deployment.",
+            "To evaluate the quality of a manufactured product.",
+            "To minimize the cost of guaranteeing quality by activities performed throughout the development stages.",
+            "To focus purely on syntax error removal.",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: "Quality Control (QC) is defined as:",
+          opts: [
+            "A designed process to evaluate the quality of a set of activities or manufactured product.",
+            "Activities that prevent causes of errors early in development.",
+            "The entire range of QA activities.",
+            "The managerial scheduling process.",
+          ],
+          ans: 0,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: "One of the objectives of SQA activities in Software Development is assuring an acceptable level of confidence that the software will conform to:",
+          opts: [
+            "Hardware constraints only.",
+            "The managerial scheduling and budgetary requirements.",
+            "Off-the-shelf software limits.",
+            "Beta testing environments only.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: "What is considered one of the most important elements for achieving software quality?",
+          opts: [
+            "Requirement Documentation (Specification).",
+            "Fast CPUs.",
+            "The choice of programming language.",
+            "Utilizing open-source libraries.",
+          ],
+          ans: 0,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: "Poor requirements documents frequently lack quality factors such as:",
+          opts: [
+            "Price and budget.",
+            "Usability, reusability, and maintainability.",
+            "Team member qualifications.",
+            "System clock speed.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: "Are all quality factors emphasized equally across different software projects?",
+          opts: [
+            "Yes, every project requires equal emphasis on all factors.",
+            "No, the emphasis varies from project to project (e.g., scalability vs. portability).",
+            "Yes, but only in Object-Oriented models.",
+            "No, only maintainability matters.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: "SQA activities need to be integrated into:",
+          opts: [
+            "The hardware procurement plan.",
+            "The development plan that implements the software development models.",
+            "The user manual.",
+            "The HR hiring process.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: "When planning SQA activities, planners need to determine the timing, who performs the activity, resources required, and:",
+          opts: [
+            "The physical location of the server.",
+            "The type of QA activity to be applied.",
+            "The marketing strategy.",
+            "The color scheme of the GUI.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: '"Magnitude of the project" and "Severity of failure outcomes" are considered:',
+          opts: [
+            "Team Factors",
+            "Project Factors",
+            "Hardware Factors",
+            "User Factors",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: 'Which of the following is considered a "Team Factor" affecting SQA intensity?',
+          opts: [
+            "Technical complexity and difficulty.",
+            "Extent of reusable software components.",
+            "Percentage of new staff members in the team.",
+            "Magnitude of the project.",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: "Why do few organizations want to allocate the necessary time for SQA activities?",
+          opts: [
+            "Because SQA is fully automated and takes zero time.",
+            "Because often there is no time left for the follow-on work of removing defects.",
+            "Because SQA planners are usually not trained.",
+            "Because customers do not care about quality.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 1,
+          chTitle: "Ch.1: Intro to SQA",
+          q: "SQA activities are typically linked to:",
+          opts: [
+            "The start of the marketing campaign.",
+            "The completion of a project phase (e.g., requirements, design).",
+            "The final day of the project only.",
+            "Hardware upgrades.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: "The classic SDLC mode is described as a:",
+          opts: [
+            "Highly structured, plan-driven, heavy-weight, linear sequence.",
+            "Risk-centered, iterative loop.",
+            "Component-based prototype.",
+            "Small-scale agile framework.",
+          ],
+          ans: 0,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: "Which development model uses an evolutionary and iterative process that heavily involves customer evaluation and feedback?",
+          opts: [
+            "The SDLC Model",
+            'The "V" Model',
+            "The Prototyping Model",
+            "The Top-Down Model",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: 'In the "V" Model, what testing phase directly corresponds to "System Design"?',
+          opts: [
+            "Unit Testing",
+            "Integration Testing",
+            "System Testing",
+            "Acceptance Testing",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: "The Spiral Model was developed by Barry Boehm primarily in response to:",
+          opts: [
+            "The need for faster coding languages.",
+            "Delayed risk in the traditional SDLC.",
+            "The invention of Object-Oriented programming.",
+            "Customer demands for prototypes.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: 'Each "spiral" in the Spiral Model includes:',
+          opts: [
+            "Planning, Risk Analysis/Resolution, Engineering activities, and Customer Evaluation.",
+            "Unit, Integration, System, and Acceptance Testing.",
+            "Requirements, Coding, and Deployment.",
+            "Alpha testing and Beta testing.",
+          ],
+          ans: 0,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: "The Object-Oriented Development Model places a heavy emphasis on:",
+          opts: [
+            "Linear progression.",
+            "Component-based software development and re-usability.",
+            "Big bang testing.",
+            "Creating stubs and drivers.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: "A core testing axiom states that exhaustive testing is:",
+          opts: [
+            "Required for all projects.",
+            "Impossible for non-trivial applications.",
+            "Easy to achieve with modern tools.",
+            "The only way to prove no bugs exist.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: "Software testing is described as a risk-based exercise because:",
+          opts: [
+            "It causes risks to the budget.",
+            "It is done differently in different contexts (e.g., safety-critical vs. e-commerce).",
+            "Testers risk losing their jobs.",
+            "It relies entirely on random inputs.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: "According to the defect removal model, defect removal costs are:",
+          opts: [
+            "Exactly the same across all phases.",
+            "Highest during the requirements phase.",
+            "MUCH greater in later development phases.",
+            "Cheaper once the software is in operation.",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: 'According to the provided table, what is the average relative defect removal cost during the "Operation" phase?',
+          opts: ["1", "16", "40", "110"],
+          ans: 3,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: "For the defect removal model assumptions, what is the minimum percentage of incoming defects each SQA activity is assumed to filter out?",
+          opts: ["10%", "25%", "40%", "75%"],
+          ans: 2,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: 'A "comprehensive" quality assurance plan improves upon a standard plan by adding:',
+          opts: [
+            "A Design Inspection and a Design Review to the design phase.",
+            "Only more unit tests.",
+            "A second operations phase.",
+            "Marketing evaluations.",
+          ],
+          ans: 0,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: "Which IEEE Standard provides details on how to prepare a quality assurance plan?",
+          opts: ["IEEE 802.11", "IEEE 1012", "IEEE 730", "IEEE 829"],
+          ans: 2,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: "In an SQA plan, coding guidelines, design guidelines, and testing guidelines are categorized under:",
+          opts: [
+            "Audits",
+            "Quality control activities",
+            "Standards",
+            "Causal analysis",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: "Code walkthroughs, peer reviews, and formal reviews are categorized in the SQA plan as:",
+          opts: [
+            "Standards",
+            "Audits",
+            "Quality control activities",
+            "Training",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: "Which of the following is an audit that should be scheduled in the SQA plan?",
+          opts: [
+            "Phase-end audits",
+            "Unit test audits",
+            "Requirements audits",
+            "Code compilation audits",
+          ],
+          ans: 0,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: '"The more bugs you find, the more bugs there are" is considered a:',
+          opts: [
+            "Management failure.",
+            "Testing axiom.",
+            "Coding error.",
+            "Myth.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: "Pareto principle holds true in testing, which implies that tests should be:",
+          opts: [
+            "Exhaustive.",
+            "Prioritised by risk.",
+            "Done exclusively at the end.",
+            "Automated completely.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: "When should detailed tests be defined?",
+          opts: [
+            "After the software is deployed.",
+            "During the coding phase.",
+            "As soon as the system design is complete.",
+            "During the maintenance phase.",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 2,
+          chTitle: "Ch.2: Quality in SDLC",
+          q: 'What is an expected outcome of "Lingering defects coupled with introduced defects in current development phase"?',
+          opts: [
+            "They cancel each other out.",
+            "They add up and pass to successive phases.",
+            "They are automatically caught by the compiler.",
+            "They reduce the relative cost of removal.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: "According to the IEEE definition, a review process is a meeting where a work product is presented to interested parties for:",
+          opts: [
+            "Rewriting the code.",
+            "Comment or approval.",
+            "Final deployment.",
+            "Budgetary approval only.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: 'Which of the following is a "Direct objective" of a review?',
+          opts: [
+            "To provide an informal meeting place for knowledge exchange.",
+            "To record analysis and design errors as a basis for future corrective actions.",
+            "To detect analysis and design errors as well as subjects where corrections are required.",
+            "To train junior developers.",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: 'Which of the following is an "Indirect objective" of a review?',
+          opts: [
+            "To locate deviations from templates.",
+            "To approve the analysis or design product.",
+            "To identify new risks likely to affect the project.",
+            "To provide an informal meeting place for exchange of professional knowledge.",
+          ],
+          ans: 3,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: 'The objective of a "Management review" is to:',
+          opts: [
+            "Find anomalies in the code.",
+            "Examine the suitability of the software for intended use.",
+            "Determine the status of plans and schedules, and evaluate management effectiveness.",
+            "Verify that action items are closed.",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: 'What is the recommended group size for an "Inspection"?',
+          opts: ["2-7 people", "3-6 people", ">= 2 people", "Exactly 5 people"],
+          ans: 1,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: 'In a "Walk-through" review, who typically presents the material?',
+          opts: ["A Reader", "The Author", "The Review Leader", "A Manager"],
+          ans: 1,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: 'In an "Inspection", who typically acts as the presenter?',
+          opts: ["The Author", "A Reader", "The Manager", "The Facilitator"],
+          ans: 1,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: 'For which type of review is data collection considered "Required"?',
+          opts: [
+            "Management review",
+            "Technical review",
+            "Inspection",
+            "Walk-through",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: "Who is responsible for appointing team members, establishing schedules, and distributing documents for a review?",
+          opts: [
+            "The Review Team",
+            "The Review Leader",
+            "The Customer",
+            "The QA Tester",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: "When should the Review Team review the document and list their comments?",
+          opts: [
+            "After the review session.",
+            "During the review session.",
+            "PRIOR to the review session.",
+            "Only if requested by the author.",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: 'A "Partial approval" decision during a review means:',
+          opts: [
+            "The project is fully approved but with minor corrections.",
+            "The project can continue to the next phase for some parts, but major action items are needed for the remainder.",
+            "The review must be repeated immediately.",
+            "Half of the team agrees, half disagrees.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: 'A "Denial of Approval" demands a repeat of the review because:',
+          opts: [
+            "The presenter was absent.",
+            "The project has major or critical defects.",
+            "The meeting ran out of time.",
+            "The budget was exceeded.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: "Following the review, who has the primary responsibility to prepare the Review Report?",
+          opts: [
+            "The Author",
+            "The Follow-up person",
+            "The Review Leader",
+            "The Manager",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: "What must be included for each action item listed in the Review Report?",
+          opts: [
+            "The exact line of code to be fixed.",
+            "The anticipated completion date and responsible person.",
+            "The cost of the fix.",
+            "A signature from the customer.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: 'What is the primary duty in the "Follow up Process"?',
+          opts: [
+            "To write the code for the author.",
+            "To verify each action item is fixed as a condition for allowing the project to continue.",
+            "To schedule the next project's review.",
+            "To punish developers for their errors.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: "During a review session, if there is a disagreement about an error, what is the recommended guideline?",
+          opts: [
+            "Vote on it immediately.",
+            "End the debate by noting the issue and shifting its discussion to another forum.",
+            "Accept the author's viewpoint to save time.",
+            "Cancel the review session.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: "What is the maximum recommended duration for a review session?",
+          opts: ["One hour", "Two hours", "Three hours", "No limit"],
+          ans: 1,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: "Discussions during the review session should focus on professional issues and refrain from:",
+          opts: [
+            "Finding defects.",
+            "Following the agenda.",
+            "Personalizing the issues.",
+            "Validating comments.",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: "Review infrastructure guidelines suggest training whom to serve as a reservoir for Review teams?",
+          opts: [
+            "Interns",
+            "Senior professionals",
+            "Marketing staff",
+            "Customers",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 3,
+          chTitle: "Ch.3: Reviews",
+          q: "Instead of discussing possible solutions during a review, participants should focus on:",
+          opts: [
+            "Detection of defects.",
+            "Rewriting the code together.",
+            "Estimating the time to fix the defect.",
+            "Arguing over coding styles.",
+          ],
+          ans: 0,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: '"Testing shows the presence of defects, not their absence" means that even if no defects are found:',
+          opts: [
+            "The software has zero bugs.",
+            "Testing is not a proof of correctness.",
+            "Testing was done incorrectly.",
+            "The testers should be fired.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: 'The principle that states "A small number of modules usually contains most of the defects" is known as:',
+          opts: [
+            "Exhaustive testing.",
+            "Pesticide paradox.",
+            "Defects cluster together.",
+            "Context dependent testing.",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: 'The "Pesticide Paradox" suggests that:',
+          opts: [
+            "Testing early saves time and money.",
+            "Absence-of-errors is a fallacy.",
+            "If the same tests are repeated, they will eventually no longer find new defects.",
+            "Bugs are like insects and multiply over time.",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: 'Which testing phase evaluates the test basis to answer the question "what to test?"',
+          opts: [
+            "Test execution",
+            "Test implementation",
+            "Test design",
+            "Test analysis",
+          ],
+          ans: 3,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: 'Which testing phase elaborates test conditions into high-level test cases, answering "how to test?"',
+          opts: [
+            "Test control",
+            "Test design",
+            "Test monitoring",
+            "Test completion",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: 'In the Bug life Cycle, if a bug is marked "Retested" and the fix is confirmed, what is its next status?',
+          opts: ["Assigned", "Deferred", "Verified", "Duplicate"],
+          ans: 2,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: "Unit testing is typically carried out by:",
+          opts: [
+            "End-users",
+            "Dedicated testers",
+            "Developers",
+            "Quality Assurance Managers",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: "Which integration testing strategy integrates and tests all components at the exact same time?",
+          opts: [
+            "Top-Down Integration",
+            "Bottom-Up Integration",
+            "Big-Bang Integration",
+            "Sandwich Integration",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: "In Top-Down Integration Testing, what program simulates the input-output behavior of missing lower-level subsystems?",
+          opts: ["Test Stub", "Test Driver", "Compiler", "Emulator"],
+          ans: 0,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: "In Bottom-Up Integration Testing, what is required to call/reference a subsystem and pass a test case to it?",
+          opts: ["Test Stub", "Test Driver", "Test Harness", "Simulator"],
+          ans: 1,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: "The Sandwich Testing Strategy combines which two strategies?",
+          opts: [
+            "Big-Bang and Unit",
+            "System and Acceptance",
+            "Top-Down and Bottom-Up",
+            "Alpha and Beta",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: "What is the goal of System Testing?",
+          opts: [
+            "To test individual functions.",
+            "To detect communication errors between components.",
+            "To evaluate whether the software complies with the specified requirements as a whole.",
+            "To test the system in a live, customer environment.",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: "Which type of Acceptance test involves users testing the software at the development site?",
+          opts: ["Beta Test", "System Test", "Unit Test", "Alpha Test"],
+          ans: 3,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: "Blackbox testing concentrates on:",
+          opts: [
+            "The internal structure and source code.",
+            "The hardware specifications.",
+            "The inputs and outputs of the test object without reference to its internal structure.",
+            "Reviewing the design documentation only.",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: "In Equivalence Class Partitioning (ECP), how should invalid equivalence partitions be tested?",
+          opts: [
+            "Combined with all valid partitions.",
+            "Ignored entirely.",
+            "Individually, not combined with other invalid partitions, to ensure failures are not masked.",
+            "Only at the system testing level.",
+          ],
+          ans: 2,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: "Boundary Value Analysis (BVA) can only be used when:",
+          opts: [
+            "The partition is unordered.",
+            "The partition is ordered, consisting of numeric or sequential data.",
+            "The test involves user interfaces exclusively.",
+            "The software is safety-critical.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: "If a valid range is an integer from 1 to 5 inclusive, what are the two-point boundary values for the valid equivalence partition?",
+          opts: ["0 and 6", "2 and 4", "1 and 5", "0, 1, 5, and 6"],
+          ans: 2,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: "In Decision Tables, the rows are usually formed by:",
+          opts: [
+            "Only the test cases.",
+            "Conditions (often inputs) at the top and actions (often outputs) at the bottom.",
+            "Equivalence classes.",
+            "System states.",
+          ],
+          ans: 1,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: "In a State Transition diagram, what initiates a transition from one state to another?",
+          opts: [
+            "An event (e.g., user input).",
+            "An action.",
+            "A decision rule.",
+            "A test stub.",
+          ],
+          ans: 0,
+        },
+        {
+          ch: 4,
+          chTitle: "Ch.4: Software Testing",
+          q: "The fundamental concept behind Pairwise testing is that:",
+          opts: [
+            "All individual parameters must be tested in isolation.",
+            "Testing is done by pairing an experienced tester with a junior tester.",
+            "Most errors are generated from the combination of values of input parameter pairs.",
+            "Testing is only valid if two distinct test cases yield the same error.",
+          ],
+          ans: 2,
+        },
+      ];
+
+      const CHAPTERS = [
+        { id: 1, title: "Introduction of SQA" },
+        { id: 2, title: "Integrating Quality in SDLC" },
+        { id: 3, title: "Reviews" },
+        { id: 4, title: "Software Testing" },
+      ];
+
+      let selectedChapters = new Set([1, 2, 3, 4]);
+      let quizQuestions = [],
+        results = [],
+        userAnswers = [];
+
+      function renderChapterGrid() {
+        document.getElementById("chapter-grid").innerHTML = CHAPTERS.map(
+          (c) => {
+            const count = QUESTIONS.filter((q) => q.ch === c.id).length;
+            return `<div class="chapter-card ${selectedChapters.has(c.id) ? "selected" : ""}" onclick="toggleChapter(${c.id})">
+      <div class="ch-num">Chương ${c.id}</div>
+      <div class="ch-title">${c.title}</div>
+      <div class="ch-count">${count} câu hỏi</div>
+    </div>`;
+          },
+        ).join("");
+      }
+
+      function toggleChapter(id) {
+        selectedChapters.has(id)
+          ? selectedChapters.delete(id)
+          : selectedChapters.add(id);
+        renderChapterGrid();
+      }
+      function selectAll() {
+        CHAPTERS.forEach((c) => selectedChapters.add(c.id));
+        renderChapterGrid();
+      }
+      function clearAll() {
+        selectedChapters.clear();
+        renderChapterGrid();
+      }
+
+      function shuffle(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function startQuiz() {
+        if (!selectedChapters.size) {
+          alert("Vui lòng chọn ít nhất một chương!");
+          return;
+        }
+        const pool = QUESTIONS.filter((q) => selectedChapters.has(q.ch));
+        const count = Math.min(
+          parseInt(document.getElementById("q-count").value),
+          pool.length,
+        );
+        quizQuestions = shuffle(pool).slice(0, count);
+        results = [];
+        userAnswers = new Array(quizQuestions.length).fill(null);
+        showScreen("quiz-screen");
+        renderAllQuestions();
+      }
+
+      function renderAllQuestions() {
+        const total = quizQuestions.length;
+        const chapterCount = selectedChapters.size;
+        document.getElementById("q-meta").textContent = `Tổng ${total} câu`;
+        document.getElementById("q-chapter-tag").textContent =
+          `${chapterCount} chương`;
+        document.getElementById("progress-fill").style.width = "100%";
+
+        const letters = ["A", "B", "C", "D"];
+        document.getElementById("questions-list").innerHTML = quizQuestions
+          .map(
+            (q, qi) =>
+              `<div class="question-card">
+      <div class="review-tag">${q.chTitle}</div>
+      <div class="question-text">${qi + 1}. ${q.q}</div>
+      <div class="options">
+        ${q.opts
+          .map(
+            (opt, oi) =>
+              `<button class="option-btn ${userAnswers[qi] === oi ? "selected" : ""}" onclick="selectAnswer(${qi}, ${oi})"><span class="letter">${letters[oi]}</span><span>${opt}</span></button>`,
+          )
+          .join("")}
+      </div>
+    </div>`,
+          )
+          .join("");
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function selectAnswer(questionIdx, optionIdx) {
+        userAnswers[questionIdx] = optionIdx;
+        renderAllQuestions();
+      }
+
+      function submitQuiz() {
+        const unanswered = userAnswers.filter((a) => a === null).length;
+        if (unanswered > 0) {
+          const ok = confirm(
+            `Bạn còn ${unanswered} câu chưa trả lời. Vẫn nộp bài?`,
+          );
+          if (!ok) return;
+        }
+        results = quizQuestions.map((q, i) => userAnswers[i] === q.ans);
+        showResults();
+      }
+
+      function showResults() {
+        showScreen("result-screen");
+        const correct = results.filter(Boolean).length;
+        const total = results.length;
+        const pct = Math.round((correct / total) * 100);
+        document.getElementById("score-pct").textContent = pct + "%";
+        document.getElementById("s-correct").textContent = correct;
+        document.getElementById("s-wrong").textContent = total - correct;
+        document.getElementById("s-total").textContent = total;
+        document.getElementById("result-msg").textContent =
+          pct >= 80
+            ? "🎉 Xuất sắc! Bạn nắm vững kiến thức."
+            : pct >= 60
+              ? "👍 Khá tốt! Hãy ôn thêm các câu sai."
+              : "📖 Cần ôn tập thêm. Cố lên!";
+        document.getElementById("review-area").style.display = "none";
+      }
+
+      function toggleReview() {
+        const area = document.getElementById("review-area");
+        if (area.style.display !== "none") {
+          area.style.display = "none";
+          return;
+        }
+        area.style.display = "block";
+        const letters = ["A", "B", "C", "D"];
+        document.getElementById("review-list").innerHTML = quizQuestions
+          .map((q, i) => {
+            const ua = userAnswers[i];
+            return `<div class="review-item">
+      <div class="review-tag">${q.chTitle}</div>
+      <div class="review-q">${i + 1}. ${q.q}</div>
+      ${q.opts
+        .map((opt, oi) => {
+          let cls = "neutral";
+          if (oi === q.ans) cls = "correct";
+          else if (oi === ua && ua !== q.ans) cls = "wrong";
+          return `<div class="review-ans ${cls}"><strong>${letters[oi]}.</strong> ${opt}</div>`;
+        })
+        .join("")}
+    </div>`;
+          })
+          .join("");
+        area.scrollIntoView({ behavior: "smooth" });
+      }
+
+      function restartSame() {
+        quizQuestions = shuffle(quizQuestions);
+        results = [];
+        userAnswers = new Array(quizQuestions.length).fill(null);
+        showScreen("quiz-screen");
+        renderAllQuestions();
+      }
+      function exitQuiz() {
+        showHome();
+      }
+      function showHome() {
+        showScreen("home-screen");
+        renderChapterGrid();
+      }
+      function showScreen(id) {
+        document
+          .querySelectorAll(".screen")
+          .forEach((s) => s.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+      }
+
+      renderChapterGrid();
+    </script>
+  </body>
+</html>
