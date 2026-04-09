@@ -1460,6 +1460,7 @@
         userAnswers = new Array(quizQuestions.length).fill(null);
         showScreen("quiz-screen");
         renderAllQuestions();
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
       function renderAllQuestions() {
@@ -1488,8 +1489,6 @@
     </div>`,
           )
           .join("");
-
-        window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
       function selectAnswer(questionIdx, optionIdx) {
